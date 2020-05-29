@@ -91,7 +91,12 @@ export class Application<S extends Record<string, any>> {
     this.routerMap.set(router.basePath, router);
   }
 
-  async listen() {
+  listen() {
+    this.serve();
+    return this;
+  }
+
+  private async serve() {
     this.server = serve(this.options);
     for await (const req of this.server) {
       this.handleRequest(req);
