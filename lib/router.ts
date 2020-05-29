@@ -9,7 +9,8 @@ import {
 
 import * as posix from "https://deno.land/std/path/posix.ts";
 
-enum METHOD {
+export enum METHOD {
+  ALL = "ALL",
   GET = "GET",
   POST = "POST",
   PUT = "PUT",
@@ -20,82 +21,123 @@ enum METHOD {
   PATCH = "PATCH",
 }
 
-interface MiddlewareMap<S> extends Record<METHOD, Middleware<S>[]> {}
+interface MiddlewareMap<S> extends Map<METHOD, Middleware<S>[]> {}
 
-export class Router<S extends Record<string, any>> {
+export class Router<State> {
   basePath: string;
-  routes: Record<string, MiddlewareMap<S>>;
-  middlewares: Middleware<S>[];
-  state: S;
+  routes: Map<string, MiddlewareMap<State>>;
+  routerMap!: Map<string, Router<State>>;
 
   constructor(basePath: string) {
-    this.basePath = basePath ?? "/";
-    this.middlewares = [];
-    this.state = <S> {};
-    this.routes = {};
+    this.basePath = basePath;
+    // init METHOD.ALL middlewares
+    this.routes = new Map();
+    this.routes.set("/", new Map());
+    this.routes.get("/")!.set(METHOD.ALL, []);
   }
 
-  getThis() {
-    return this;
+  use(middRouter: Middleware<State> | Router<State>) {
+    if (middRouter instanceof Router) {
+      this.registerRouter(middRouter);
+    } else {
+      this.routes.get("/")!.get(METHOD.ALL)!.push(middRouter);
+    }
   }
 
-  use(func: Middleware<S>) {
-    this.middlewares.push(func);
+  private registerRouter(router: Router<State>) {
+    if (!this.routerMap) {
+      this.routerMap = new Map();
+    }
+
+    // /path/to/router => new Router('/path/to/router')
+    this.routerMap.set(router.basePath, router);
   }
 
-  async route(self: Router<S>, context: Context<S>) {
-    let path: any = context.req.url.split("?")[0];
+  async handleRequest(context: Context<State>, relativePath: string) {
+    // replace '/basePath/path' to '/path' = routerPath
+    relativePath = relativePath.replace(new RegExp(`^${this.basePath}`), "");
+    let routePath: any = posix.join("/", relativePath);
 
-    let route;
-    if (route = this.routes[path]) {
+    let route, router;
+    // handle router middlewares
+    if (route = this.routes.get(routePath)) {
       try {
-        // resolve this.middleware(global middlewares) first
-        await Promise.resolve(resolveMiddlewares(context, this.middlewares));
-
-        let methodMiddlewares;
-        if (methodMiddlewares = route[<METHOD> context.req.method]) {
+        // process router level middlewares
+        let middlewares: any;
+        if (middlewares = route.get(METHOD.ALL)) {
+          await Promise.resolve(resolveMiddlewares(context, middlewares));
+        }
+        // process method level middlewares
+        let methodMiddlewares: any;
+        if (methodMiddlewares = route.get(<METHOD> context.req.method)) {
           await Promise.resolve(resolveMiddlewares(context, methodMiddlewares));
         }
+        middlewares = undefined;
         methodMiddlewares = undefined;
       } catch (e) {
         this.handleError(e, context);
       }
+    } // past context to the next router
+    else if (router = this.routerMap.get(routePath)) {
+      router.handleRequest(context, routePath);
     } else {
       context.req.respond({ status: 404 });
     }
-    path = undefined;
+
+    routePath = undefined;
     route = undefined;
+    router = undefined;
   }
 
-  handleError(err: Error, ctx: Context<S>) {
-    console.log(this.basePath, ": ", err);
+  handleError(err: Error, ctx: Context<State>) {
+    console.log(ctx.req.url, ": ", err);
     ctx.req.respond({ status: 404 });
   }
 
-  setState(state: S) {
-    this.state = state;
-  }
-
-  private initMethod(path: string, method: METHOD) {
-    if (!this.routes[path] || !this.routes[path][method]) {
-      this.routes[path] = this.routes[path] ?? <MiddlewareMap<S>> {};
-      this.routes[path][method] = [];
+  private initMethod(path: string, method: METHOD, next: Middleware<State>) {
+    // setup router map
+    if (!this.routes.has(path)) {
+      this.routes.set(path, new Map());
     }
+
+    // setup router middlewares
+    if (!this.routes.get(path)!.has(method)) {
+      this.routes.get(path)!.set(method, []);
+    }
+    // use path '/basepath' as ''
+    // let relativePath = path === this.basePath ? "" : path;
+    this.routes.get(path)!.get(method)!.push(next);
   }
 
-  get(path: string, func: Middleware<S>) {
-    this.initMethod(path, METHOD.GET);
-    this.routes[path][METHOD.GET].push(func);
+  get(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.GET, func);
   }
 
-  post(path: string, func: Middleware<S>) {
-    this.initMethod(path, METHOD.POST);
-    this.routes[path][METHOD.POST].push(func);
+  post(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.POST, func);
+  }
+
+  put(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.PUT, func);
+  }
+
+  delete(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.DELETE, func);
+  }
+
+  connect(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.CONNECT, func);
+  }
+
+  options(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.OPTIONS, func);
+  }
+
+  trace(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.TRACE, func);
+  }
+
+  patch(path: string, func: Middleware<State>) {
+    this.initMethod(path, METHOD.PATCH, func);
   }
 }
-
-// console.log(posix.join("/", "/path", ":join", "/2?23/"));
-
-// const url = new URL("/query?name=jun&age=30", `http://localhost:8000`);
-
-// console.log(url);
