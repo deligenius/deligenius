@@ -7,6 +7,15 @@ import {
 
 import { Router } from "./router.ts";
 export interface Request extends ServerRequest {
+  query?: object;
+  json?: object;
+  urlencoded?: object;
+  text?: string;
+  html?: string;
+  javascript?: string;
+  xml?: object;
+  graphql?: object;
+  file?: { ext: string; content: Uint8Array };
 }
 export interface Response {
   headers?: Headers;
