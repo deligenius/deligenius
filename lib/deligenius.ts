@@ -8,6 +8,7 @@ import {
 import { Router } from "./router.ts";
 export interface Request extends ServerRequest {
   query?: object;
+  params?: object;
   json?: object;
   urlencoded?: object;
   text?: string;
