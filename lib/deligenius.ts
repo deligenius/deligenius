@@ -5,11 +5,8 @@ import {
   Server as HttpServer,
 } from "../deps.ts";
 
-import { Router, METHOD } from "./router.ts";
-import { posix } from "https://deno.land/std/path/mod.ts";
+import { Router } from "./router.ts";
 export interface Request extends ServerRequest {
-  path?: string;
-  query?: string;
 }
 export interface Response {
   headers?: Headers;
@@ -17,11 +14,17 @@ export interface Response {
   status?: number;
 }
 
+interface ContextIntf<S> {
+  req: Request;
+  res: Response;
+  state: S;
+}
+
 export interface Middleware<State> {
   (ctx: Context<State>, next: Function): void;
 }
 
-export class Context<S> {
+export class Context<S> implements ContextIntf<S> {
   req: Request;
   res: Response;
   state: S;

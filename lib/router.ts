@@ -1,9 +1,6 @@
 import {
-  Request,
-  Response,
   Middleware,
   Context,
-  Application,
   resolveMiddlewares,
 } from "./deligenius.ts";
 
