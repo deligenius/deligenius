@@ -1,11 +1,15 @@
 import {
   serve,
+  serveTLS,
   ServerRequest,
   HTTPOptions,
   Server as HttpServer,
+  HTTPSOptions,
 } from "../deps.ts";
 
 import { Router } from "./router.ts";
+import { HttpError } from "./httpError.ts";
+
 export interface Request extends ServerRequest {
   query?: object;
   params?: object;
@@ -73,11 +77,11 @@ export class Context<S> implements ContextIntf<S> {
 export class Application<S extends Record<string, any>> {
   private server!: HttpServer;
   private middlewares: Middleware<S>[];
-  private options!: HTTPOptions;
+  private options!: HTTPOptions | HTTPSOptions;
   private state: S | any;
   private routerMap!: Map<string, Router<S>>;
 
-  constructor(options: HTTPOptions) {
+  constructor(options: HTTPOptions | HTTPSOptions) {
     this.options = options;
     this.middlewares = [];
     this.state = {};
@@ -87,11 +91,13 @@ export class Application<S extends Record<string, any>> {
     this.state = state;
   }
 
-  use(middRouter: Middleware<S> | Router<S>) {
-    if (middRouter instanceof Router) {
-      this.registerRouter(middRouter);
-    } else {
-      this.middlewares.push(middRouter);
+  use(...middRouters: (Middleware<S> | Router<S>)[]) {
+    for (let middRouter of middRouters) {
+      if (middRouter instanceof Router) {
+        this.registerRouter(middRouter);
+      } else {
+        this.middlewares.push(middRouter);
+      }
     }
   }
 
@@ -110,7 +116,13 @@ export class Application<S extends Record<string, any>> {
   }
 
   private async serve() {
-    this.server = serve(this.options);
+    // if it's https server
+    if ("certFile" in this.options) {
+      this.server = serveTLS(this.options);
+    } else {
+      this.server = serve(this.options);
+    }
+
     for await (const req of this.server) {
       this.handleRequest(req);
     }
@@ -121,7 +133,7 @@ export class Application<S extends Record<string, any>> {
 
     try {
       // resolve global middlewares
-      await Promise.resolve(resolveMiddlewares(context, this.middlewares));
+      await Promise.resolve(this.resolveMiddlewares(context, this.middlewares));
     } catch (e) {
       this.handleError(e, context);
     }
@@ -129,7 +141,10 @@ export class Application<S extends Record<string, any>> {
     if (this.routerMap) {
       this.route(context);
     } else {
-      this.handleError(new Error("No route found"), context);
+      this.handleError(
+        new HttpError("You don't have any routers", 404),
+        context,
+      );
     }
 
     // recycle vars
@@ -137,72 +152,77 @@ export class Application<S extends Record<string, any>> {
   }
 
   private route(context: Context<S>) {
-    let fullpath: any = context.req.url.split("?")[0];
-    let pathArr: any = fullpath.split("/");
+    let markIndex = context.req.url.indexOf("?");
+    let fullpath;
+    if (markIndex > 0) {
+      fullpath = context.req.url.substring(0, markIndex);
+    } else {
+      fullpath = context.req.url;
+    }
+    let pathArr = fullpath.split("/");
 
     // loop through /base => /base/path => /base/path/found
     // until found a router matches it
-    let path: any = "";
+    let path = "";
+    let router;
     for (let item of pathArr) {
       if (item) {
         path += "/" + item;
-        let router;
         if (router = this.routerMap.get(path)) {
           router.handleRequest(context, fullpath);
-          break;
+          return router;
         }
-        router = undefined;
       }
     }
-
-    fullpath = undefined;
-    pathArr = undefined;
-    path = undefined;
+    if (!router) {
+      this.handleError(new HttpError("No router matches", 404), context);
+    }
   }
 
   handleError(err: Error, ctx: Context<S>) {
-    console.log(err);
-    ctx.req.respond({ status: 404 });
+    if (err instanceof HttpError) {
+      ctx.req.respond({ status: err.status });
+    } else {
+      ctx.req.respond({ status: 404 });
+    }
   }
 
   close() {
     this.server.close();
   }
-}
 
-export function resolveMiddlewares<S>(
-  context: Context<S>,
-  middlewares: Middleware<S>[],
-) {
-  if (middlewares.length === 0) {
-    return;
-  }
-  return new Promise(async (resolve, reject) => {
-    let middlewareIndex: any = -1;
+  resolveMiddlewares(
+    context: Context<S>,
+    middlewares: Middleware<S>[],
+  ) {
+    if (middlewares.length === 0) {
+      return;
+    }
+    return new Promise(async (resolve, reject) => {
+      let middlewareIndex = -1;
 
-    let _resolveMiddleware = async (context: Context<S>, i: number = 0) => {
-      // keep tracking index to prevent over call next()
-      if (i <= middlewareIndex) {
-        reject("next() called multiple times");
-      } else {
-        middlewareIndex = i;
-      }
-
-      if (i === middlewares.length) {
-        resolve();
-      } // exec middleware functions
-      else {
-        let fn: any = middlewares[i];
-        try {
-          await fn(context, _resolveMiddleware.bind(null, context, i + 1));
-        } catch (e) {
-          reject(e.message);
+      let _resolveMiddleware = async (context: Context<S>, i: number = 0) => {
+        // keep tracking index to prevent over call next()
+        if (i <= middlewareIndex) {
+          reject("next() called multiple times");
+        } else {
+          middlewareIndex = i;
         }
-        fn = undefined;
-      }
-    };
 
-    middlewareIndex = undefined;
-    _resolveMiddleware(context);
-  });
+        if (i === middlewares.length) {
+          resolve();
+        } // exec middleware functions
+        else {
+          let fn = middlewares[i];
+          try {
+            await fn(context, _resolveMiddleware.bind(null, context, i + 1));
+          } catch (err) {
+            this.handleError(err, context);
+          }
+        }
+      };
+
+      _resolveMiddleware(context);
+    });
+  }
 }

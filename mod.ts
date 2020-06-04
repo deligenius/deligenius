@@ -4,6 +4,7 @@ export {
   Middleware,
   Context,
   Application,
-} from "./lib/deligenius.ts";
+} from "./lib/application.ts";
 
 export { Router } from "./lib/router.ts";
+export { HttpError } from "./lib/httpError.ts";
