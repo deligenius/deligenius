@@ -153,7 +153,7 @@ export class Router<State extends Record<string, any>> {
     this.initMethod(path, METHOD.PATCH, middlewares);
   }
 
-  resolveMiddlewares(
+  private resolveMiddlewares(
     context: Context<State>,
     middlewares: Middleware<State>[],
   ) {

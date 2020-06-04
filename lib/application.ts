@@ -11,16 +11,17 @@ import { Router } from "./router.ts";
 import { HttpError } from "./httpError.ts";
 
 export interface Request extends ServerRequest {
-  query?: object;
-  params?: object;
-  json?: object;
-  urlencoded?: object;
-  text?: string;
-  html?: string;
-  javascript?: string;
-  xml?: object;
-  graphql?: object;
-  file?: { ext: string; content: Uint8Array };
+  [key:string] : any
+  // query?: object;
+  // params?: object;
+  // json?: object;
+  // urlencoded?: object;
+  // text?: string;
+  // html?: string;
+  // javascript?: string;
+  // xml?: object;
+  // graphql?: object;
+  // file?: { ext: string; content: Uint8Array };
 }
 export interface Response {
   headers?: Headers;
@@ -191,7 +192,7 @@ export class Application<S extends Record<string, any>> {
     this.server.close();
   }
 
-  resolveMiddlewares(
+  private resolveMiddlewares(
     context: Context<S>,
     middlewares: Middleware<S>[],
   ) {
