@@ -1,6 +1,6 @@
 import {
   Middleware,
-  Context
+  Context,
 } from "./application.ts";
 
 import { HttpError } from "./httpError.ts";
@@ -57,38 +57,42 @@ export class Router<State extends Record<string, any>> {
     // replace '/basePath/path' to '/path' = routerPath
     let routePath: any = relativePath.substring(this.basePath.length) || "/";
 
-    let route, router;
+    let route;
     // handle router middlewares
     if (route = this.routes.get(routePath)) {
-      try {
-        // process router level middlewares
-        let middlewares: any;
-        if ((middlewares = route.get(METHOD.ALL)) && middlewares.length > 0) {
-          await Promise.resolve(this.resolveMiddlewares(context, middlewares));
-        }
-        // process method level middlewares
-        let methodMiddlewares: any;
-        if (methodMiddlewares = route.get(<METHOD> context.req.method)) {
-          await Promise.resolve(
-            this.resolveMiddlewares(context, methodMiddlewares),
-          );
-        }
-        // middlewares = undefined;
-        // methodMiddlewares = undefined;
-      } catch (err) {
-        this.handleError(err, context);
+      // process router level middlewares
+      let middlewares: any;
+      if ((middlewares = route.get(METHOD.ALL)) && middlewares.length > 0) {
+        await Promise.resolve(this.resolveMiddlewares(context, middlewares));
+      }
+      // process method level middlewares
+      let methodMiddlewares: any;
+      if (methodMiddlewares = route.get(<METHOD> context.req.method)) {
+        await Promise.resolve(
+          this.resolveMiddlewares(context, methodMiddlewares),
+        );
       }
     } // past context to the next router
-    else if (router = this.routerMap.get(routePath)) {
-      router.handleRequest(context, routePath);
+    else if (this.routerMap && this.routerMap.has(routePath)) {
+      this.routerMap.get(routePath)!.handleRequest(context, routePath);
     } else {
-      this.handleError(
-        new HttpError(
-          "No router/middleware matches at " + context.req.url,
-          404,
-        ),
-        context,
+      // no route/router matches, it may be a params request
+      let methodMiddlewares = this.routes.get("/")!.get(
+        <METHOD> context.req.method,
       );
+      if (methodMiddlewares && methodMiddlewares.length > 0) {
+        await Promise.resolve(
+          this.resolveMiddlewares(context, methodMiddlewares!),
+        );
+      } else {
+        this.handleError(
+          new HttpError(
+            "No router/middleware matches at " + context.req.url,
+            404,
+          ),
+          context,
+        );
+      }
     }
 
     // routePath = undefined;
@@ -163,7 +167,10 @@ export class Router<State extends Record<string, any>> {
     return new Promise(async (resolve, reject) => {
       let middlewareIndex = -1;
 
-      let _resolveMiddleware = async (context: Context<State>, i: number = 0) => {
+      let _resolveMiddleware = async (
+        context: Context<State>,
+        i: number = 0,
+      ) => {
         // keep tracking index to prevent over call next()
         if (i <= middlewareIndex) {
           reject("next() called multiple times");
@@ -177,7 +184,11 @@ export class Router<State extends Record<string, any>> {
         else {
           let fn = middlewares[i];
           try {
-            await fn(context, _resolveMiddleware.bind(null, context, i + 1));
+            await fn(
+              context,
+              _resolveMiddleware.bind(null, context, i + 1),
+              this,
+            );
           } catch (err) {
             this.handleError(err, context);
           }

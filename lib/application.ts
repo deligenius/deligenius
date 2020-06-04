@@ -36,7 +36,7 @@ interface ContextIntf<S> {
 }
 
 export interface Middleware<State> {
-  (ctx: Context<State>, next: Function): void;
+  (ctx: Context<State>, next: Function, router?: Router<State>): void;
 }
 
 export class Context<S> implements ContextIntf<S> {
