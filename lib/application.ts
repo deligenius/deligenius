@@ -42,7 +42,7 @@ export class Context<S> implements ContextIntf<S> {
       status: 200,
       headers: new Headers(),
       body: "",
-      send: this.send,
+      send: this.send.bind(this),
     };
   }
 
