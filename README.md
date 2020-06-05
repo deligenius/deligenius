@@ -1,4 +1,5 @@
-﻿# dg.ts
+﻿# deligenius
+
 
 > Lightweight Deno middleware framework
 
