@@ -11,22 +11,13 @@ import { Router } from "./router.ts";
 import { HttpError } from "./httpError.ts";
 
 export interface Request extends ServerRequest {
-  [key:string] : any
-  // query?: object;
-  // params?: object;
-  // json?: object;
-  // urlencoded?: object;
-  // text?: string;
-  // html?: string;
-  // javascript?: string;
-  // xml?: object;
-  // graphql?: object;
-  // file?: { ext: string; content: Uint8Array };
+  [key: string]: any;
 }
 export interface Response {
   headers?: Headers;
   body?: string;
   status?: number;
+  send: Function;
 }
 
 interface ContextIntf<S> {
@@ -36,7 +27,7 @@ interface ContextIntf<S> {
 }
 
 export interface Middleware<State> {
-  (ctx: Context<State>, next: Function, router?: Router<State>): void;
+  (ctx: Context<State>, next: Function, ...args: any[]): void;
 }
 
 export class Context<S> implements ContextIntf<S> {
@@ -51,6 +42,7 @@ export class Context<S> implements ContextIntf<S> {
       status: 200,
       headers: new Headers(),
       body: "",
+      send: this.send,
     };
   }
 
@@ -149,7 +141,7 @@ export class Application<S extends Record<string, any>> {
     }
 
     // recycle vars
-    context = undefined;
+    // context = undefined;
   }
 
   private route(context: Context<S>) {
@@ -175,6 +167,12 @@ export class Application<S extends Record<string, any>> {
         }
       }
     }
+    // no router found, it may be a "/" router or params request?
+    if (this.routerMap.has("/")) {
+      router = this.routerMap.get("/");
+      router!.handleRequest(context, fullpath);
+    }
+
     if (!router) {
       this.handleError(new HttpError("No router matches", 404), context);
     }
