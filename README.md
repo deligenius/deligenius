@@ -18,7 +18,7 @@
 
 ```ts
 // ./app.ts
-import { Application } from "https://raw.githubusercontent.com/deligenius/dg.ts/master/mod.ts";
+import { Application } from "https://raw.githubusercontent.com/deligenius/deligenius/master/mod.ts";
 
 let app = new Application({ port: 8000 }).listen();
 
@@ -42,7 +42,7 @@ If you write code in the `express.js` way, it's recommended to use `Router`, as 
 import {
   Application,
   Router,
-} from "https://raw.githubusercontent.com/deligenius/dg.ts/master/mod.ts";
+} from "https://raw.githubusercontent.com/deligenius/deligenius/master/mod.ts";
 
 let app = new Application({ port: 8000 }).listen();
 let router = new Router("/");
@@ -59,8 +59,8 @@ router.get("/", ({ req, res }, next) => {
 
 
 
-`dg.ts` has a separate middleware module: `bodyParser`, which can be used to parse **parameter**, **query**, **json** etc,.
-We will use `mid` from [bodyParser](https://github.com/deligenius/bodyparser) which includes many pre-configured middlewares for `dg.ts`
+`deligenius` has a separate middleware module: `bodyParser`, which can be used to parse **parameter**, **query**, **json** etc,.
+We will use `mid` from [bodyParser](https://github.com/deligenius/bodyparser) which includes many pre-configured middlewares for `deligenius`
 
 #### Get `query` parameter
 
@@ -68,7 +68,7 @@ We will use `mid` from [bodyParser](https://github.com/deligenius/bodyparser) wh
 import {
   Application,
   Router,
-} from "https://raw.githubusercontent.com/deligenius/dg.ts/master/mod.ts";
+} from "https://raw.githubusercontent.com/deligenius/deligenius/master/mod.ts";
 import { mid } from "https://raw.githubusercontent.com/deligenius/bodyparser/master/mod.ts";
 
 let app = new Application({ port: 8000 }).listen();
@@ -99,7 +99,7 @@ app.use(mid.params("/:name/:age"), (ctx) => {
 
 #### Get `multipart/form-data`
 
-  - consider use `dg.ts` official [Multiparser](https://github.com/deligenius/multiparser)
+  - consider use `deligenius` official [Multiparser](https://github.com/deligenius/multiparser)
 
 #### Get `urlencoded` form data
 
@@ -116,7 +116,7 @@ app.use(mid.urlencoded(), (ctx) => {
 
 
 
-`dg.ts` has a default error handler `handleError` in every ```Application``` and ```Router```
+`deligenius` has a default error handler `handleError` in every ```Application``` and ```Router```
 
 #### Error handling In middleware
 ```ts
