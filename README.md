@@ -5,7 +5,7 @@
 #### Features
 
 - 🐤 Light weight (11kb)
-- 🚅 Near deno http module performance
+- 🚅 Extremely high performance [(97.74% of deno http module)](https://www.deligenius.com/docs/benchmark)
 - 🤸‍♂️ Body parser middleware option
 - ✔️ Gentle error handling
 
