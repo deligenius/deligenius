@@ -1,4 +1,4 @@
-﻿# [Deligenius](https://www.deligenius.com/)
+﻿# [DeliGenius](https://www.deligenius.com/)
 
 > Lightweight Deno middleware framework
 
