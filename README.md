@@ -1,7 +1,7 @@
-﻿# [DeliGenius](https://www.deligenius.com/)
+﻿![](/img/deligenius.png)
+> Lightweight Deno middleware framework 
 
-> Lightweight Deno middleware framework
-
+ [www.DeliGenius.com](https://www.deligenius.com/)
 #### Features
 
 - 🐤 Light weight (11kb)
