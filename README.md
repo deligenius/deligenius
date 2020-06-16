@@ -4,10 +4,10 @@
 
 #### Features
 
-- Light weight (11kb)
-- Near deno http module performance
-- Body parser middleware option
-- Gentle error handling
+- 🐤 Light weight (11kb)
+- 🚅 Near deno http module performance
+- 🤸‍♂️ Body parser middleware option
+- ✔️ Gentle error handling
 
 ## Documentation
 
