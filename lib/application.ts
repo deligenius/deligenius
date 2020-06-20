@@ -14,9 +14,9 @@ export interface Request extends ServerRequest {
   [key: string]: any;
 }
 export interface Response {
-  headers?: Headers;
-  body?: string;
-  status?: number;
+  headers: Headers;
+  body: string;
+  status: number;
   send: Function;
 }
 
