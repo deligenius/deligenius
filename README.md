@@ -1,6 +1,8 @@
 ﻿![](/img/deligenius.png)
 > Lightweight Deno middleware framework 
 
+ [![nest badge](https://nest.land/badge.svg)](https://nest.land/package/deligenius)
+
  [www.DeliGenius.com](https://www.deligenius.com/)
 #### Features
 
