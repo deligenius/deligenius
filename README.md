@@ -9,7 +9,7 @@
 
 - 🐤 Light weight (11kb)
 - 🚅 Extremely high performance [(97.74% of deno http module)](https://www.deligenius.com/docs/benchmark)
-- 🤸‍♂️ Body parser middleware option
+- 🤸‍♂️ Official Bodyparser middleware support
 - ✔️ Gentle error handling
 
 ## Documentation
