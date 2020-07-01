@@ -1,6 +1,7 @@
-﻿![](/img/deligenius.png)
-> Lightweight Deno middleware framework 
+﻿![](https://github.com/deligenius/deligenius/blob/master/img/deligenius.png?raw=true)
+> A lightweight, high-performance and customizable web framework for Deno.
 
+[![tag](https://img.shields.io/badge/Deno%20-std%400.59.0-333?&logo=Deno)](https://deno.land/std@0.59.0)
  [![nest badge](https://nest.land/badge.svg)](https://nest.land/package/deligenius)
 
  [www.DeliGenius.com](https://www.deligenius.com/)

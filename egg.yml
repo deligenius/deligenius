@@ -1,6 +1,6 @@
 name: deligenius
 description: a light weight, high-performance and customizable web framework for Deno
-version: 1.0.0
+version: 1.0.1
 entry: ./mod.ts
 stable: true
 unlisted: false
@@ -8,3 +8,4 @@ fmt: true
 repository: https://github.com/deligenius/deligenius
 files:
   - ./**/*
+  - ./README.md
