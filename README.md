@@ -26,7 +26,7 @@ Please check out [Deligenius.com website](https://www.deligenius.com/)
 
 ```ts
 // ./app.ts
-import { Application } from "https://raw.githubusercontent.com/deligenius/deligenius/master/mod.ts";
+import { Application } from "https://x.nest.land/deligenius@1.0.2/mod.ts";
 
 let app = new Application({ port: 8000 }).listen();
 
