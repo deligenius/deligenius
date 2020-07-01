@@ -185,7 +185,11 @@ export class Router<State extends Record<string, any>> {
           let fn = middlewares[i];
           try {
             // next(context, nextRoute, router = this)
-            await fn(context,_resolveMiddleware.bind(null, context, i + 1),this);
+            await fn(
+              context,
+              _resolveMiddleware.bind(null, context, i + 1),
+              this,
+            );
           } catch (err) {
             this.handleError(err, context);
           }
