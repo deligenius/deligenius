@@ -18,16 +18,18 @@ jobs:
     # checkoput master branch
     steps:
     - uses: actions/checkout@v2
-    # Use node.js
-    - uses: actions/setup-node@v2-beta
-      with:
-        node-version: '12'
-
-    - name: Clean
-      run: npm run clean
       
-    - name: Build & Deploy
-      run: npm run deploy
+    - uses: borales/actions-yarn@v2.0.0
+      with:
+        cmd: install # install dependencies
+
+    - uses: borales/actions-yarn@v2.0.0
+      with:
+        cmd: clean # install dependencies
+      
+    - uses: borales/actions-yarn@v2.0.0
+      with:
+        cmd: deploy # install dependencies
 
     - name: Commit files
       run: |
