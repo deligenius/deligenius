@@ -24,7 +24,7 @@ jobs:
         node-version: '12'
 
     - name: Clean
-      run: npm run build
+      run: npm run clean
       
     - name: Build & Deploy
       run: npm run deploy
