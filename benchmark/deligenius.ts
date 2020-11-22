@@ -1,4 +1,4 @@
-import { Application } from "https://raw.githubusercontent.com/deligenius/dg.ts/master/mod.ts";
+import { Application } from "../mod.ts";
 
 let app = new Application({ port: 8000 }).listen();
 
